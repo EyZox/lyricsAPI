@@ -1,8 +1,8 @@
 {
 	"googleapis": {
-		"key": "YOUR GOOGLE CUSTOM SEARCH API KEY",
-		"cx": "YOUR GOOGLE CUSTOM SEARCH API CX",
-		"num": "THE MAX NUMBER OR RESULT RETURNED"
+		"key": "AIzaSyCVAXiUzRYsML1Pv6RwSG1gunmMikTzQqY",
+		"cx": "006318568453672542814:aqot6yzfnfw",
+		"num": "2"
 	},
 	
 	"modules": [
