@@ -1,0 +1,24 @@
+{
+	"googleapis": {
+		"key": "YOUR GOOGLE CUSTOM SEARCH API KEY",
+		"cx": "YOUR GOOGLE CUSTOM SEARCH API CX",
+		"num": "THE MAX NUMBER OR RESULT RETURNED"
+	},
+	
+	"modules": [
+		{
+			"name": "lololyrics",
+			"coeff": "1"
+		},
+		{
+			"name": "limitlesslyrics",
+			"coeff": "2"
+		},
+		{
+			"name": "musixmatch",
+			"coeff": "3"
+		}
+	],
+	
+	"uselessTags": ["preview", "official"]
+}
