@@ -1,6 +1,6 @@
 {
   "name": "lyricsapi",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "An open source node.js module to get lyrics from a song",
   "main": "lyrics.js",
   "scripts": {
