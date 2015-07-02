@@ -7,13 +7,14 @@ An open source node.js module to get lyrics from a song
 ### Main code
 
     var LyricsApi = require('lyricsapi');
-    var lyricsApiInstance = new LyricsApi([config path]);
+    var lyricsApiInstance = new LyricsApi([config (String path)][, debug (boolean)]);
     lyricsApiInstance.getLyrics(<title>,<author>,function(lyricsData) {
         //Do whatever you want
         //lyricsData is an array[Strophe number][Verse number] or an empty array if no result found
     });
 
-That's all you need by default to get lyrics from a song. 
+That's all you need by default to get lyrics from a song.
+A basic example is available on github here : https://github.com/EyZox/lyricsAPI/tree/master/examples
 
 ## Advanced help
 
@@ -38,7 +39,8 @@ This section is usefull to customize your result. You don't need to use it to ge
     		}
     	],
     	
-    	"uselessTags": ["SKIPED WORLD TO SEARCH ENGINE", ...]
+    	"uselessTags": ["SKIPED WORLD TO SEARCH ENGINE", ...],
+    	"clear-regexp": "ELEMENTS MATCHING FROM THIS REGEX WILL BE SKIPPED (YOU CAN USE THIS REGEXP API : https://www.npmjs.com/package/xregexp)"
     }
     
 ### Create your own lyrics-modules

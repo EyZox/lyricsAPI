@@ -20,5 +20,6 @@
 		}
 	],
 	
-	"uselessTags": ["preview", "official"]
+	"uselessTags": ["preview", "official"],
+	"clear-regexp": "\\(.*\\)|\\[.*\\]|[^\\p{Latin}0-9 ]"
 }

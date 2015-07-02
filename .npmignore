@@ -1,2 +1,7 @@
-.git
-.gitattributes
+.git*
+.settings
+node_modules
+.project
+test*.js
+examples
+.npmignore

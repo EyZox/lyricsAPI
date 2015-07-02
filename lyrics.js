@@ -1,46 +1,71 @@
+var path = require('path');
 var request = require('request');
 var jsdom = require('jsdom');
 var fs = require('fs');
+var	XRegExp = require('xregexp').XRegExp;
+
 /**
  * Create instance of Lyrics
- * @param {Array} configuration option
+ * @param {String} configuration filepath
+ * @param {boolean|undefined} debug
  * @constructor
  */
-var Lyrics = function(config) {
+var Lyrics = function(config, debug) {
 
-	/**
-	 * Log a message in console
-	 * @param msg
-	 */
-	Lyrics.prototype.log = function(msg) {
-		console.log('[Lyrics] '+msg);
-	}
+	this.debug = debug !== undefined && debug;
 
-	if(config === undefined) config = './config.json';
-	this.params=JSON.parse(fs.readFileSync(config, 'utf8'));
+	if(config === undefined) config = path.resolve(__dirname, 'config.json');
 	this.log('Loading config from '+config);
 	
-	for(var i=0; i<this.params['modules'].length; i++) {
-		var moduleName = this.params['modules'][i]['name'];
-		try {
-			var Req = require('./modules/'+this.params['modules'][i]['name']);
-			this.params['modules'][i]['name'] = new Req();
-			var checkFunction = function(name, that) {
-				if(typeof eval('that.params[\'modules\'][i][\'name\'].'+name) !== 'function') {
-					throw 'Can\'t find function '+name;
-				}
+	var params=JSON.parse(fs.readFileSync(config, 'utf8'));
+	
+	this.googleapis = {
+		key: params['googleapis']['key'],
+		cx: params['googleapis']['cx'],
+		num: params['googleapis']['num'] === undefined || isNaN(parseInt(params['googleapis']['num'])) ? 1 : parseInt(params['googleapis']['num'])
+	};
+	
+	this.pattern = new XRegExp(params['clear-regexp']+(params['uselessTags'] !== undefined && params['uselessTags'].length>0?('|'+params['uselessTags'].join('|')):''), 'gi');
+	this.modules = Array();
+	
+	
+	if(params['modules'] !== undefined) {
+		
+		var checkFunction = function(classs, function_name) {
+			if(typeof classs[function_name] !== 'function') {
+				throw new Error('Can\'t find function '+function_name);
 			}
-			checkFunction('accept', this);
-			checkFunction('getLyrics', this);
-			
-			this.log('Module '+moduleName+' loaded');
-
-		}catch(err) {
-			this.log('Unable to load the module '+moduleName+': '+err);
-			this.params['modules'].slice(i,1);
-			i--;
+		}
+		
+		for(var i=0; i<params['modules'].length; i++) {
+			try {
+				var Req = require('./modules/'+params['modules'][i]['name']);
+				var reqInstance = new Req();
+				
+				checkFunction(reqInstance, 'accept');
+				checkFunction(reqInstance, 'getLyrics');
+				
+				var moduleIndex = this.modules.length;
+				this.modules[moduleIndex] = {
+						instance: reqInstance, 
+						coeff: params['modules'][i]['coeff'] === undefined || isNaN(parseInt(params['modules'][i]['coeff'])) ? 1 : parseInt(params['modules'][i]['coeff'])
+				};
+				
+				this.log('Module '+params['modules'][i]['name']+' loaded with coeff '+this.modules[moduleIndex].coeff);
+	
+			}catch(err) {
+				this.log('Unable to load the module '+params['modules'][i]['name']+': '+err);
+			}
 		}
 	}
+}
+
+/**
+ * Log a message in console if debug activated
+ * @param msg
+ */
+Lyrics.prototype.log = function(msg) {
+	if(this.debug) console.log('[LyricsAPI] '+msg);
 }
 
 /**
@@ -51,15 +76,8 @@ var Lyrics = function(config) {
  * @private
  */
 Lyrics.prototype.getGoogleSearchURL = function(author, title) {
-	var pattern = '\\(.*\\)|\\[.*\\]|[^a-zA-Z0-9éèïî ]'+(this.params['uselessTags'].length>0?('|'+this.params['uselessTags'].join('|')):'');
-	
-	author = author.trim().replace(new RegExp(pattern,'gi'), ' ').trim();
-	var authorArray = author.split(/ +/);
-	
-	title = title.trim().replace(new RegExp(pattern+(authorArray.length>0?('|'+authorArray.join('|')):''), 'gi'), ' ').trim();
-	var titleArray = title.split(/ +/);
-	
-	return 'https://www.googleapis.com/customsearch/v1element?key='+this.params['googleapis']['key']+'&cx='+this.params['googleapis']['cx']+'&num='+this.params['googleapis']['num']+'&prettyPrint=false&q='+authorArray.join('%20')+(titleArray.length>0?('%20'+titleArray.join('%20')):'');
+	var tags = XRegExp.replace(author+' '+title,this.pattern, ' ').trim().split(/ +/);
+	return 'https://www.googleapis.com/customsearch/v1element?key='+this.googleapis.key+'&cx='+this.googleapis.cx+'&num='+this.googleapis.num+'&prettyPrint=false&q='+tags.join('%20');
 
 };
 
@@ -77,12 +95,12 @@ Lyrics.prototype.getMaxPotentialLyrics = function(searchURL, callback) {
 		var choice;
 		if (json.hasOwnProperty('results')) {
 			for(var ires=0; ires<json['results'].length; ires++) {
-				var coefGoogle = (that.params["googleapis"]["num"]/(ires+1));
+				var coefGoogle = (that.googleapis.num/(ires+1));
 				var moduleMax;
-				for(var imod=0; imod<that.params['modules'].length; imod++) {
-					var value = coefGoogle*that.params['modules'][imod]['name'].accept(json['results'][ires])*that.params['modules'][imod]['coeff'];
+				for(var imod=0; imod<that.modules.length; imod++) {
+					var value = coefGoogle*that.modules[imod].instance.accept(json['results'][ires])*that.modules[imod].coeff;
 					if(value > 0 && (moduleMax === undefined || moduleMax.value < value)) {
-						moduleMax = {mod: that.params['modules'][imod]['name'], value:value};
+						moduleMax = {mod: that.modules[imod].instance, value:value};
 					}
 				}
 				if(moduleMax !== undefined && (choice === undefined || choice.module.value < moduleMax.value)) {

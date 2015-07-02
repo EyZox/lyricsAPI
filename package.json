@@ -1,6 +1,6 @@
 {
   "name": "lyricsapi",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "An open source node.js module to get lyrics from a song",
   "main": "lyrics.js",
   "scripts": {
@@ -22,6 +22,7 @@
   "homepage": "https://github.com/EyZox/lyricsAPI#readme",
   "dependencies": {
     "request": "^2.57.0",
-    "jsdom": "^3.1.2"
+    "jsdom": "^3.1.2",
+    "xregexp": "^2.0.0"
   }
 }
