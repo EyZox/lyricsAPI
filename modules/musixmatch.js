@@ -26,7 +26,6 @@ Musixmatch.prototype.getLyrics = function(window) {
 		var match = search_pattern.exec(scripts[i].innerHTML);
 		if(match != null) {
 			var lyricsJSON = JSON.parse(match[1]);
-			console.log(JSON.stringify(lyricsJSON));
 			if(lyricsJSON.page.lyrics.lyrics.body !== undefined) {
 				return parseLyrics(lyricsJSON.page.lyrics.lyrics.body);
 			}
