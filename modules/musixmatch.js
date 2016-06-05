@@ -20,16 +20,26 @@ Musixmatch.prototype.accept = function(result) {
  */
 Musixmatch.prototype.getLyrics = function(window) {
 	var lyricsData;
-	var lyricsDiv = window.document.getElementById('lyrics-html');
-	if(lyricsDiv !== null) {
-		lyricsData = lyricsDiv.innerHTML.split(/\n{2}/);
-		for(var i = 0; i< lyricsData.length; i++) {
-			lyricsData[i] = lyricsData[i].split(/\n/);
+	var scripts = window.document.body.getElementsByTagName('script');
+	var search_pattern = new RegExp('.*var __mxmState = ({.*}).*');
+	for(var i in scripts) {
+		var match = search_pattern.exec(scripts[i].innerHTML);
+		if(match != null) {
+			var lyricsJSON = JSON.parse(match[1]);
+			return parseLyrics(lyricsJSON.page.lyrics.lyrics.body);
 		}
 	}
 	
-	return lyricsData;
+	return [];
 };
+
+function parseLyrics(stringLyrics) {
+	lyricsData = stringLyrics.split(/\n{2}/);
+	for(var i = 0; i< lyricsData.length; i++) {
+		lyricsData[i] = lyricsData[i].split(/\n/);
+	}
+	return lyricsData;
+}
 
 
 module.exports = Musixmatch;
